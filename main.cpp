@@ -160,7 +160,7 @@ void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string&
 				occ_shift = 0;
 			}
 		} else if (valid_char(c)) { // letter
-			p += c;
+			p.insert(p.begin() + cursor_pos, c);
 			timer UPD;
 			m.insert(cursor_pos, c);
 			update_time_ms = *UPD;
