@@ -4,6 +4,7 @@
 #include <fstream>
 #include <thread>
 #include <atomic>
+#include <mutex>
 
 #include "matching.cpp"
 #include "terminal.cpp"
@@ -56,6 +57,7 @@ const int MAX_OC_RANGE = 20;
 
 std::atomic<bool> completed_sa = false;
 int build_time_ms;
+std::mutex print_mutex;
 
 void compute_sa(dyn_pattern::matching& m, std::string& t) {
 	timer T;
@@ -64,23 +66,41 @@ void compute_sa(dyn_pattern::matching& m, std::string& t) {
 	completed_sa = true;
 }
 
+void look_for_interruption() {
+	while (!completed_sa) {
+		char c = terminal::getch_now();
+		if (c) {
+			std::lock_guard<std::mutex> guard(print_mutex);
+			terminal::close_screen();
+			exit(0);
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+}
+
 void preprocess(dyn_pattern::matching& m, std::string& text_name, std::string& t) {
 	std::thread sa_thread(compute_sa, std::ref(m), std::ref(t));
+	std::thread interrupt_thread(look_for_interruption);
 	timer T;
 	int cnt = 0;
 	while (!completed_sa) {
-		terminal::clear_screen();
-		std::cout << "Building Suffix Array for text " << text_name << " with "
-			<< BOLD(format_int(t.size())) << " characters" << std::endl;
+		{
+			std::lock_guard<std::mutex> guard(print_mutex);
+			terminal::clear_screen();
+			std::cout << "Building Suffix Array for text " << text_name << " with "
+				<< BOLD(format_int(t.size())) << " characters" << std::endl;
 
-		std::cout << std::endl << "Elapsed time: " << BOLD(T()/1000) << " seconds";
-		for (int i = 0; i < std::min(3, cnt/2); i++) std::cout << ".";
-		std::cout << std::endl;
-		if (++cnt == 20) cnt = 0;
+			std::cout << std::endl << "Elapsed time: " << BOLD(T()/1000) << " seconds";
+			for (int i = 0; i < std::min(3, cnt/2); i++) std::cout << ".";
+			std::cout << std::endl;
+			if (++cnt == 20) cnt = 0;
+		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 	sa_thread.join();
+	interrupt_thread.join();
 }
 
 void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string& t) {
@@ -135,8 +155,8 @@ void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string&
 		terminal::print_cursor();
 		char c = terminal::getch();
 		if (c == 27) { // special command
-			c = terminal::getch();
-			if (c == 27) { // escape twice
+			c = terminal::getch_now();
+			if (c == 0) { // escape
 				break;
 			}
 			c = terminal::getch();
