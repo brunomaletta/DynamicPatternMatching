@@ -5,6 +5,7 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
+#include <signal.h>
 
 #include "matching.cpp"
 #include "terminal.cpp"
@@ -59,6 +60,20 @@ std::atomic<bool> completed_sa = false;
 int build_time_ms;
 std::mutex print_mutex;
 
+void handle_exit_signal() {
+	std::lock_guard<std::mutex> guard(print_mutex);
+	terminal::close_screen();
+	exit(1);
+}
+
+void my_handler(int s){
+	handle_exit_signal();
+}
+
+void setup() {
+	signal(SIGINT, my_handler);
+}
+
 void compute_sa(dyn_pattern::matching& m, std::string& t) {
 	timer T;
 	m = dyn_pattern::matching(t);
@@ -69,11 +84,7 @@ void compute_sa(dyn_pattern::matching& m, std::string& t) {
 void look_for_interruption() {
 	while (!completed_sa) {
 		char c = terminal::getch_now();
-		if (c) {
-			std::lock_guard<std::mutex> guard(print_mutex);
-			terminal::close_screen();
-			exit(0);
-		}
+		if (c) handle_exit_signal();
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
@@ -191,6 +202,7 @@ void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string&
 }
 
 int main(int argc, char** argv) {
+	setup();
 	if (argc < 2) {
 		std::cout << "Error: please provide an input file" << std::endl;
 		return 1;
