@@ -122,7 +122,7 @@ std::string read_text(std::ifstream& in, std::string text_name) {
 	std::thread read_text_thread(read_text_thread_func, std::ref(in), text_name, std::ref(t),
 		std::ref(read_completed));
 
-	print_loading("Reading Text", read_completed);
+	print_loading("Reading text " + text_name, read_completed);
 	read_text_thread.join();
 
 	return t;
