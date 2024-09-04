@@ -6,6 +6,7 @@
 #include <atomic>
 #include <mutex>
 #include <signal.h>
+#include <sstream>
 
 #include "matching.cpp"
 #include "terminal.cpp"
@@ -14,6 +15,9 @@
 #define BOLD(P) terminal::bold_on << P << terminal::reset_format
 #define INVERT(P) terminal::invert_on << P << terminal::reset_format
 #define UNDERLINE(P) terminal::underline_on << P << terminal::reset_format
+
+const int MAX_OC_PRINT = 10;
+const int MAX_OC_RANGE = 20;
 
 bool valid_char(char c) {
 	if (c == ' ') return true;
@@ -53,11 +57,6 @@ std::string format_int(int n) {
 	return ret;
 }
 
-const int MAX_OC_PRINT = 10;
-const int MAX_OC_RANGE = 20;
-
-std::atomic<bool> completed_sa = false;
-int build_time_ms;
 std::mutex print_mutex;
 
 void handle_exit_signal() {
@@ -74,15 +73,8 @@ void setup() {
 	signal(SIGINT, my_handler);
 }
 
-void compute_sa(dyn_pattern::matching& m, std::string& t) {
-	timer T;
-	m = dyn_pattern::matching(t);
-	build_time_ms = T();
-	completed_sa = true;
-}
-
-void look_for_interruption() {
-	while (!completed_sa) {
+void look_for_interruption(std::atomic<bool>& stop_condition) {
+	while (!stop_condition) {
 		char c = terminal::getch_now();
 		if (c) handle_exit_signal();
 
@@ -90,17 +82,15 @@ void look_for_interruption() {
 	}
 }
 
-void preprocess(dyn_pattern::matching& m, std::string& text_name, std::string& t) {
-	std::thread sa_thread(compute_sa, std::ref(m), std::ref(t));
-	std::thread interrupt_thread(look_for_interruption);
+void print_loading(std::string op, std::atomic<bool>& stop_condition) {
+	std::thread interrupt_thread(look_for_interruption, std::ref(stop_condition));
 	timer T;
 	int cnt = 0;
-	while (!completed_sa) {
+	while (!stop_condition) {
 		{
 			std::lock_guard<std::mutex> guard(print_mutex);
 			terminal::clear_screen();
-			std::cout << "Building Suffix Array for text " << text_name << " with "
-				<< BOLD(format_int(t.size())) << " characters" << std::endl;
+			std::cout << op << std::endl;
 
 			std::cout << std::endl << "Elapsed time: " << BOLD(T()/1000) << " seconds";
 			for (int i = 0; i < std::min(3, cnt/2); i++) std::cout << ".";
@@ -110,11 +100,60 @@ void preprocess(dyn_pattern::matching& m, std::string& text_name, std::string& t
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
-	sa_thread.join();
 	interrupt_thread.join();
 }
 
-void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string& t) {
+void read_text_thread_func(std::ifstream& in, std::string text_name, std::string& t,
+	std::atomic<bool>& read_completed) {
+	std::string line;
+	while (getline(in, line)) {
+		t += line;
+		t += '\n';
+	}
+	in.close();
+	format(t);
+	read_completed = true;
+}
+
+std::string read_text(std::ifstream& in, std::string text_name) {
+	std::atomic<bool> read_completed = false;
+	std::string t;
+
+	std::thread read_text_thread(read_text_thread_func, std::ref(in), text_name, std::ref(t),
+		std::ref(read_completed));
+
+	print_loading("Reading Text", read_completed);
+	read_text_thread.join();
+
+	return t;
+}
+
+void compute_sa_thread_func(dyn_pattern::matching& m, std::string& t,
+	std::atomic<bool>& sa_completed, int& build_time_ms) {
+	timer T;
+	m = dyn_pattern::matching(t);
+	build_time_ms = T();
+	sa_completed = true;
+}
+
+int preprocess(dyn_pattern::matching& m, std::string& text_name, std::string& t) {
+	int build_time_ms = 0;
+	std::atomic<bool> sa_completed = false;
+
+	std::thread compute_sa_thread(compute_sa_thread_func, std::ref(m), std::ref(t),
+		std::ref(sa_completed), std::ref(build_time_ms));
+
+	std::stringstream ss;
+	ss << "Building Suffix Array for text " << text_name << " with "
+		<< BOLD(format_int(t.size())) << " characters";
+	print_loading(ss.str(), sa_completed);
+	compute_sa_thread.join();
+
+	return build_time_ms;
+}
+
+void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string& t,
+	int build_time_ms) {
 	std::string p;
 	int cursor_pos = 0;
 	int occ_shift = 0;
@@ -213,23 +252,17 @@ int main(int argc, char** argv) {
 		std::cout << "Error: could not open file" << std::endl;
 		return 1;
 	}
-	std::string t;
-	std::string line;
-	while (getline(in, line)) {
-		t += line;
-		t += '\n';
-	}
-	in.close();
-	format(t);
 
 	terminal::new_screen();
 	terminal::clear_screen();
 	terminal::hide_cursor();
 
-	dyn_pattern::matching m;
-	preprocess(m, text_name, t);
+	std::string t = read_text(in, text_name);
 
-	run_matching(m, text_name, t);
+	dyn_pattern::matching m;
+	int build_time_ms = preprocess(m, text_name, t);
+
+	run_matching(m, text_name, t, build_time_ms);
 
 	terminal::close_screen();
 	return 0;
