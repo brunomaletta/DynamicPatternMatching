@@ -199,7 +199,7 @@ void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string&
 				std::cout << INVERT(p);
 
 				j = std::min<int>(t.size() - m.sa.sa[l+i] - p.size(), MAX_OC_RANGE);
-				for (int k = 0; k < j; k++)std:: cout << t[m.sa.sa[l+i]+p.size()+k];
+				for (int k = 0; k < j; k++) std:: cout << t[m.sa.sa[l+i]+p.size()+k];
 				if (j < MAX_OC_RANGE) {
 					for (int k = 0; k < 3; k++) std::cout << " ";
 					for (int k = 0; k < MAX_OC_RANGE-j; k++) std::cout << " ";
@@ -211,8 +211,10 @@ void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string&
 		}
 
 		terminal::print_cursor();
-		char c = terminal::getch_or_interrupt();
-		if (c == 3) { // Ctrl+C
+		char c = terminal::getch(1);
+		if (c == 0) {
+			continue;
+		} else if (c == 3) { // Ctrl+C
 			handle_exit_signal();
 		} else if (c == 26) { // Ctrl+Z
 			continue;
