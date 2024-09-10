@@ -5,16 +5,12 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
-#include <signal.h>
+#include <csignal>
 #include <sstream>
 
 #include "matching.cpp"
 #include "terminal.cpp"
 #include "timer.cpp"
-
-#define BOLD(P) terminal::bold_on << P << terminal::reset_format
-#define INVERT(P) terminal::invert_on << P << terminal::reset_format
-#define UNDERLINE(P) terminal::underline_on << P << terminal::reset_format
 
 const int MAX_OC_PRINT = 10;
 const int MAX_OC_RANGE = 20;
@@ -65,12 +61,24 @@ void handle_exit_signal() {
 	exit(1);
 }
 
-void my_handler(int s){
+void interrupt_handler(int s){
 	handle_exit_signal();
 }
 
+void terminal_stop_handler(int s){
+	std::lock_guard<std::mutex> guard(print_mutex);
+	terminal::close_screen();
+}
+
+void continue_handler(int s) {
+	std::lock_guard<std::mutex> guard(print_mutex);
+	terminal::new_screen();
+}
+
 void setup() {
-	signal(SIGINT, my_handler);
+	signal(SIGINT, interrupt_handler);
+	signal(SIGTSTP, terminal_stop_handler);
+	signal(SIGCONT, continue_handler);
 }
 
 void look_for_interruption(std::atomic<bool>& stop_condition) {
@@ -203,8 +211,12 @@ void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string&
 		}
 
 		terminal::print_cursor();
-		char c = terminal::getch();
-		if (c == 27) { // special command
+		char c = terminal::getch_or_interrupt();
+		if (c == 3) { // Ctrl+C
+			handle_exit_signal();
+		} else if (c == 26) { // Ctrl+Z
+			continue;
+		} else if (c == 27) { // special command
 			c = terminal::getch_now();
 			if (c == 0) { // escape
 				break;

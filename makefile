@@ -10,8 +10,11 @@ pi2: main
 
 bible: main
 	./main text/bible.txt
+
+casmurro: main
+	./main text/casmurro.txt
 	
-main: main.cpp
+main: main.cpp matching.cpp terminal.cpp timer.cpp
 	g++ -o main main.cpp $(FLAGS)
 
 clean:
