@@ -8,9 +8,9 @@
 #include <csignal>
 #include <sstream>
 
-#include "matching.cpp"
-#include "terminal.cpp"
-#include "timer.cpp"
+#include "src/alg/matching.cpp"
+#include "src/aux/terminal.cpp"
+#include "src/aux/timer.cpp"
 
 const int MAX_OC_PRINT = 10;
 const int MAX_OC_RANGE = 20;
@@ -53,6 +53,16 @@ std::string format_int(int n) {
 	return ret;
 }
 
+std::string format_size(int n) {
+	if (n < 1024) return std::to_string(n) + " B";
+	n /= 1024;
+	if (n < 1024) return std::to_string(n) + " KB";
+	n /= 1024;
+	if (n < 1024) return std::to_string(n) + " MB";
+	n /= 1024;
+	return std::to_string(n) + " GB";
+}
+
 std::mutex print_mutex;
 
 void handle_exit_signal() {
@@ -85,8 +95,6 @@ void look_for_interruption(std::atomic<bool>& stop_condition) {
 	while (!stop_condition) {
 		char c = terminal::getch_now();
 		if (c) handle_exit_signal();
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }
 
@@ -153,7 +161,8 @@ int preprocess(dyn_pattern::matching& m, std::string& text_name, std::string& t)
 
 	std::stringstream ss;
 	ss << "Building Suffix Array for text " << text_name << " with "
-		<< BOLD(format_int(t.size())) << " characters";
+		<< BOLD(format_int(t.size())) << " characters (" << format_size(t.size()) << ")"
+		<< std::endl;
 	print_loading(ss.str(), sa_completed);
 	compute_sa_thread.join();
 
@@ -170,8 +179,8 @@ void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string&
 	while (1) {
 		terminal::clear_screen();
 		std::cout << "Build time: " << BOLD(format_int(build_time_ms) << " ms") << " for text "
-			<< text_name << " with " << BOLD(format_int(t.size())) << " characters"
-			<< std::endl;
+			<< text_name << " with " << BOLD(format_int(t.size())) << " characters ("
+			<< format_size(t.size()) << ")" << std::endl;
 		std::cout << std::endl << '\t' << "--> ";
 		for (int i = 0; i < cursor_pos; i++) std::cout << p[i];
 		std::cout << terminal::cursor();
@@ -186,7 +195,7 @@ void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string&
 		if (qt_oc > 0) {
 			std::cout << std::endl;
 			std::cout << "Some " << qt_oc << " occurences:" << std::endl << std::endl;
-			int l = m.d[0].L + std::min(occ_shift, m.matches() - qt_oc);
+			int l = m.range().first + std::min(occ_shift, m.matches() - qt_oc);
 			for (int i = 0; i < qt_oc; i++) {
 
 				int j = std::min(m.sa.sa[l+i], MAX_OC_RANGE);

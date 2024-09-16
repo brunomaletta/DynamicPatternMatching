@@ -23,14 +23,14 @@ char getch(int timer_ds = 0) {
 	return (buf);
 }
 
-char getch_now() {
+char getch_now(int timer_ds = 0) {
 	char buf = 0;
 	struct termios old = {0};
 	if (tcgetattr(0, &old) < 0)
 		perror("tcsetattr()");
 	old.c_lflag &= ~(ICANON | ECHO);
 	old.c_cc[VMIN] = 0;
-	old.c_cc[VTIME] = 0;
+	old.c_cc[VTIME] = timer_ds;
 	if (tcsetattr(0, TCSANOW, &old) < 0)
 		perror("tcsetattr ICANON");
 	int qt_read = read(0, &buf, 1);
