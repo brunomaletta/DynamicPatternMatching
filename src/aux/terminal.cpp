@@ -5,6 +5,15 @@
 
 namespace terminal {
 
+void reset_termios() {
+	struct termios old = {0};
+	if (tcgetattr(0, &old) < 0)
+		perror("tcsetattr()");
+	old.c_lflag |= (ICANON | ECHO);
+	if (tcsetattr(0, TCSADRAIN, &old) < 0)
+		perror("tcsetattr ~ICANON");
+}
+
 char getch(int timer_ds = 0) {
 	char buf = 0;
 	struct termios old = {0};
@@ -19,8 +28,8 @@ char getch(int timer_ds = 0) {
 		perror ("read()");
 	old.c_lflag |= (ICANON | ECHO);
 	if (tcsetattr(0, TCSADRAIN, &old) < 0)
-		perror ("tcsetattr ~ICANON");
-	return (buf);
+		perror("tcsetattr ~ICANON");
+	return buf;
 }
 
 char getch_now(int timer_ds = 0) {
@@ -38,9 +47,9 @@ char getch_now(int timer_ds = 0) {
 		perror ("read()");
 	old.c_lflag |= (ICANON | ECHO);
 	if (tcsetattr(0, TCSADRAIN, &old) < 0)
-		perror ("tcsetattr ~ICANON");
+		perror("tcsetattr ~ICANON");
 	if (qt_read == 0) return 0;
-	return (buf);
+	return buf;
 }
 
 void new_screen() {

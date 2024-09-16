@@ -82,7 +82,9 @@ void terminal_stop_handler(int s){
 
 void continue_handler(int s) {
 	std::lock_guard<std::mutex> guard(print_mutex);
+	terminal::reset_termios();
 	terminal::new_screen();
+	terminal::reset_termios();
 }
 
 void setup() {
@@ -232,7 +234,7 @@ void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string&
 			if (c == 0) { // escape
 				break;
 			}
-			c = terminal::getch();
+			c = terminal::getch(1);
 			if (c == 'D') { // left arrow
 				cursor_pos = std::max<int>(0, cursor_pos - 1);
 			} else if (c == 'C') { // right arrow
