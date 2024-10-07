@@ -5,6 +5,7 @@
 #include <cassert>
 
 #include "sa.cpp"
+#include "treap.cpp"
 
 namespace dyn_pattern {
 
@@ -89,80 +90,47 @@ struct occ {
 		if (sz <= 0) L = 0, R = sa->n, sz = 0;
 		else expand(sa->rnk[sa->sa[L] + k]);
 	}
+	std::pair<occ, occ> split(int k) const {
+		assert(k <= sz);
+		occ l = *this, r = *this;
+		l.pop_right(sz - k);
+		r.pop_left(k);
+		return {l, r};
+	}
 };
 
 struct matching {
 	suffix_array sa;
-	std::vector<occ> part;
+	treap<occ> part;
 
 	matching() {}
 	matching(const std::string& text) {
 		sa = suffix_array(text);
 	}
 
-	void merge() {
-		for (int i = 0; i+1 < (int) part.size(); i++) {
-			auto o = part[i] + part[i+1];
-			if (o.matches() > 0) {
-				part[i] = o;
-				part.erase(part.begin() + i+1);
-				i--;
-			}
-		}
-	}
-	void split(int i) { // split i|i+1
-		for (int j = 0; j < (int) part.size(); j++) {
-			if (i < part[j].sz) {
-				if (i+1 == part[j].sz) return;
-				auto o = part[j];
-				part[j].pop_right(part[j].sz-1 - i);
-				o.pop_left(i+1);
-				part.insert(part.begin() + j+1, o);
-				return;
-			}
-			i -= part[j].sz;
-		}
-		assert(false);
-	}
 	void erase(int i) {
-		if (i > 0) split(i-1);
-		split(i);
-
-		for (int j = 0; j < (int) part.size(); j++) {
-			if (i < part[j].sz) {
-				assert(part[j].sz == 1);
-				part.erase(part.begin() + j);
-				merge();
-				return;
-			}
-			i -= part[j].sz;
-		}
-		assert(false);
+		treap<occ> L, M;
+		part.split(i, L);
+		part.split(1, M);
+		part.join_left(L);
 	}
 	void insert(int i, char c) {
-		occ at(&sa, c);
-		if (i > 0) split(i-1);
-		for (int j = 0; j < (int) part.size(); j++) {
-			if (i < part[j].sz) {
-				assert(i == 0);
-				part.insert(part.begin() + j, at);
-				merge();
-				return;
-			}
-			i -= part[j].sz;
-		}
-		part.push_back(at);
-		merge();
+		treap<occ> L;
+		part.split(i, L);
+		treap<occ> M(occ(&sa, c));
+		part.join_left(M);
+		part.join_left(L);
 	}
 	void clear() {
-		part.clear();
+		treap<occ> tmp;
+		swap(tmp, part);
 	}
 	int matches() {
-		if (part.size() != 1) return 0;
-		return part[0].matches();
+		if (!part.one_node()) return 0;
+		return part.root->val.matches();
 	}
 	std::pair<int, int> range() {
-		return {part[0].L, part[0].R};
+		return {part.root->val.L, part.root->val.R};
 	}
 };
 
