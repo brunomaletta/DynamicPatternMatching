@@ -9,7 +9,7 @@ template<typename T> struct treap {
 		node *l, *r;
 		int p, sz;
 		T val;
-		node(T v, int p_) : l(NULL), r(NULL), p(p_), sz(1), val(v) {}
+		node(T v, int p_) : l(NULL), r(NULL), p(p_), sz(v.sz), val(v) {}
 		void update() {
 			sz = val.sz;
 			if (l) sz += l->sz;
@@ -51,14 +51,13 @@ template<typename T> struct treap {
 		i->update();
 	}
 	void join_values(node*& L, node*& R) {
-		if (L and R) {
-			T add = L->val + R->val;
-			if (add.matches()) {
-				L->val = add;
-				L->update();
-				delete R;
-				R = NULL;
-			}
+		if (!L or !R) return;
+		T add = L->val + R->val;
+		if (add.matches()) {
+			L->val = add;
+			L->update();
+			delete R;
+			R = NULL;
 		}
 	}
 
