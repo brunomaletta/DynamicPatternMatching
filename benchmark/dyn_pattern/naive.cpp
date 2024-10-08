@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include "../../src/alg/matching.cpp"
+#include "../../src/alg/sa.cpp"
 #include "../../src/aux/timer.cpp"
 
 int main(int argc, char** argv) {
@@ -17,8 +17,8 @@ int main(int argc, char** argv) {
 	std::string s;
 	for (int i = 0; i < n; i++) s += 'a'+rand()%2;
 
-	dyn_pattern::matching m(s);
-	int sz = 0;
+	suffix_array sa(s);
+	std::string p;
 	int sum = 0;
 	timer T;
 
@@ -26,23 +26,22 @@ int main(int argc, char** argv) {
 		int o = rand()%3+1;
 		if (q > half and o == 2) o = 1;
 		if (o == 1) { // add char
-			int idx = rand()%(sz+1);
+			int idx = rand()%(p.size()+1);
 			char c = 'a'+rand()%2;
-			m.insert(idx, c);
-			sz++;
+			p.insert(p.begin() + idx, c);
 		} else if (o == 2) { // delete char
-			if (sz == 0) continue;
-			m.erase(rand()%sz);
-			sz--;
+			if (p.size() == 0) continue;
+			p.erase(p.begin() + rand()%p.size());
 		} else if (o == 3) {
-			sum += m.matches();
+			auto [l, r, lcp] = sa.pattern_search(p);
+			sum += r-l;
 		}
 		q--;
 	}
 
 	int time = T();
 
-	std::cout << "dyn_array" << std::endl;
+	std::cout << "naive" << std::endl;
 	std::cout << sum << std::endl;
 	std::cout << time << std::endl;
 

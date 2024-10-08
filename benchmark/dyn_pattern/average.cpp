@@ -6,8 +6,7 @@ int main(int argc, char** argv) {
 	std::string s;
 	int s1 = 0, s2 = 0, mem = 0;
 	for (int i = 0; i < CNT; i++) {
-		std::cin.ignore();
-		std::getline(std::cin, s);
+		std::cin >> s;
 		int a, x, m;
 		std::cin >> x >> a >> m;
 		s1 += a;

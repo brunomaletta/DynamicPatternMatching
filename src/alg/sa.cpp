@@ -150,6 +150,7 @@ struct suffix_array {
 	}
 	// O(log(n) + lcp) <= O(log(n) + |p|)
 	std::tuple<int, int, int> pattern_search(std::string& p) {
+		if (!p.size()) return {0, 0, 0};
 		auto [l, pattern_lcp] = first_idx(p);
 		if (l == n) return {0, 0, pattern_lcp};
 		return {l, last_idx(p), pattern_lcp};
