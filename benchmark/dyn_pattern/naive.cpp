@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 	int half = q/2;
 
 	std::string s;
-	for (int i = 0; i < n; i++) s += 'a'+rand()%2;
+	for (int i = 0; i < n; i++) s += 'a'+rand()%1;
 
 	suffix_array sa(s);
 	std::string p;
@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 		if (q > half and o == 2) o = 1;
 		if (o == 1) { // add char
 			int idx = rand()%(p.size()+1);
-			char c = 'a'+rand()%2;
+			char c = 'a'+rand()%1;
 			p.insert(p.begin() + idx, c);
 		} else if (o == 2) { // delete char
 			if (p.size() == 0) continue;
