@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 	int half = q/2;
 
 	std::string s;
-	for (int i = 0; i < n; i++) s += 'a'+rand()%2;
+	for (int i = 0; i < n; i++) s += 'a';
 
 	dyn_pattern::matching m(s);
 	int sz = 0;
@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 		if (q > half and o == 2) o = 1;
 		if (o == 1) { // add char
 			int idx = rand()%(sz+1);
-			char c = 'a'+rand()%2;
+			char c = 'a';
 			m.insert(idx, c);
 			sz++;
 		} else if (o == 2) { // delete char
@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 
 	int time = T();
 
-	std::cout << "dyn_array" << std::endl;
+	std::cout << "dyn_pattern" << std::endl;
 	std::cout << sum << std::endl;
 	std::cout << time << std::endl;
 
