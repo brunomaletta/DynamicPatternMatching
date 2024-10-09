@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
 		mem += m;
 	}
 	std::cout << s << std::endl;
-	//std::cout << s2 << std::endl;
+	std::cout << s2 << std::endl;
 	std::cout << s1/CNT << " ms" << std::endl;
 	std::cout << mem/CNT << " MB" << std::endl;
 	return 0;

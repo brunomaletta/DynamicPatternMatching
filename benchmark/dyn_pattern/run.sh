@@ -1,13 +1,13 @@
-for ((i = 1; i <= 5; i++)) do
-	echo =========== $i*10^5 ===========
+for ((i = 1; i <= 10; i++)) do
+	echo =========== $i*10^6 ===========
 	> input
 
 	# size of string
-	let val=$i*100000
+	let val=$i*1000000
 	echo $val >> input
 
 	# number of operations
-	let val=$i*100000
+	let val=$i*1000000
 	echo $val >> input
 
 	for file in dyn_pattern naive
