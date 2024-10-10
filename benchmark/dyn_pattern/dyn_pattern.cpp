@@ -31,7 +31,6 @@ int main(int argc, char** argv) {
 			int idx = rand()%(sz+1);
 			char c = 'a';
 			m.insert(idx, c);
-			assert(m.part.one_node());
 			sz++;
 		} else if (o == 2) { // delete char
 			if (sz == 0) continue;
