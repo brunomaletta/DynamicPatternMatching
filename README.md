@@ -1,7 +1,6 @@
+# Dynamic Pattern Matching
 
-# Dynamic Array
-
-Implementation of the algorithms described in my MSc. Represents a dynamic pattern, subject to character insertion and deletion.
+Implementation of the algorithms described in my MSc. Represents a dynamic pattern, subject to character insertion and deletion. Building for a text of size $n$ takes $\mathcal O(n)$ time, and each character insertion or deletion takes $\mathcal O(\log n)$ time, with high probability. Computing the number of matches or indices of matches takes constant time. 
 
 <details>
 <summary>Example</summary>
