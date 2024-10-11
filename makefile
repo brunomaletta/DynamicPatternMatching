@@ -14,8 +14,14 @@ bible: main
 casmurro: main
 	./main text/casmurro.txt
 	
-main: main.cpp src/alg/matching.cpp src/alg/sa.cpp src/alg/treap.cpp src/aux/terminal.cpp src/aux/timer.cpp
+main: main.cpp src/alg/matching.cpp src/alg/sa.cpp src/alg/treap.cpp src/alg/rmq.cpp src/aux/terminal.cpp src/aux/timer.cpp
 	g++ -o main main.cpp $(FLAGS)
 
+example: sample
+	./sample
+
+sample: sample.cpp src/alg/matching.cpp src/alg/sa.cpp src/alg/treap.cpp src/alg/rmq.cpp
+	g++ -o sample sample.cpp $(FLAGS)
+
 clean:
-	rm main
+	rm -rf main sample
