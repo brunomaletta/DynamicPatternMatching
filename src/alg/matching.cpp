@@ -50,6 +50,10 @@ struct occ {
 				l = m+1;
 			else r = m;
 		}
+		if (sa->sa[l] + S.sz == sa->n or !(sa->rnk[sa->sa[l] + S.sz] < T.R)) {
+			ret.L = ret.R = 0;
+			return ret;
+		}
 		ret.L = l;
 		r = S.R;
 		while (l < r) {
