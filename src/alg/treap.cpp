@@ -4,6 +4,8 @@
 #include <chrono>
 #include <vector>
 
+namespace dyn_pattern {
+
 template<typename T> struct treap {
 	struct node {
 		node *l, *r;
@@ -130,4 +132,6 @@ template<typename T> struct treap {
 		}
 	}
 };
+
+} // namespace dyn_pattern
 

@@ -6,6 +6,8 @@
 
 #include "rmq.cpp"
 
+namespace dyn_pattern {
+
 struct suffix_array {
 	std::string s;
 	int n;
@@ -156,4 +158,6 @@ struct suffix_array {
 		return {l, last_idx(p), pattern_lcp};
 	}
 };
+
+} // namespace dyn_pattern
 

@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
 	std::string s;
 	for (int i = 0; i < n; i++) s += 'a';
 
-	suffix_array sa(s);
+	dyn_pattern::suffix_array sa(s);
 	std::string p;
 	int sum = 0;
 	timer T;

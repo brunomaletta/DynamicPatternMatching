@@ -1,8 +1,6 @@
 #include <iostream>
 #include <string>
 
-#include <cassert>
-
 #include "../../src/alg/matching.cpp"
 #include "../../src/aux/timer.cpp"
 

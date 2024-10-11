@@ -2,7 +2,6 @@
 
 #include <string>
 #include <vector>
-#include <cassert>
 
 #include "sa.cpp"
 #include "treap.cpp"
@@ -83,19 +82,16 @@ struct occ {
 		R = r;
 	}
 	void pop_right(int k) {
-		assert(L < R);
 		sz -= k;
 		if (sz <= 0) L = 0, R = sa->n, sz = 0;
 		else expand(L);
 	}
 	void pop_left(int k) {
-		assert(L < R);
 		sz -= k;
 		if (sz <= 0) L = 0, R = sa->n, sz = 0;
 		else expand(sa->rnk[sa->sa[L] + k]);
 	}
 	std::pair<occ, occ> split(int k) const {
-		assert(k <= sz);
 		occ l = *this, r = *this;
 		l.pop_right(sz - k);
 		r.pop_left(k);

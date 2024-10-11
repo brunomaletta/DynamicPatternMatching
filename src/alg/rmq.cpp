@@ -2,6 +2,8 @@
 
 #include <vector>
 
+namespace dyn_pattern {
+
 template<typename T> struct rmq {
 	std::vector<T> v;
 	int n; static const int b = 30;
@@ -30,4 +32,6 @@ template<typename T> struct rmq {
 	}
 	T query(int l, int r) { return v[index_query(l, r)]; }
 };
+
+} // namespace dyn_pattern
 

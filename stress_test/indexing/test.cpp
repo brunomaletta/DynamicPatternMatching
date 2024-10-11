@@ -6,7 +6,7 @@
 int main() {
 	std::string t;
 	std::cin >> t;
-	suffix_array sa(t);
+	dyn_pattern::suffix_array sa(t);
 	int q;
 	std::cin >> q;
 	while (q--) {
