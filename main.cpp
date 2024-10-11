@@ -188,34 +188,35 @@ void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string&
 		std::cout << terminal::cursor();
 		for (int i = 0; i < p.size() - cursor_pos; i++) std::cout << p[cursor_pos+i];
 		std::cout << std::endl << std::endl;
-		std::cout << "Number of occurences: " << UNDERLINE(BOLD(format_int(m.matches())))
+		std::cout << "Number of occurences: " << UNDERLINE(BOLD(format_int(m())))
 			<< std::endl;
 		std::cout << "Time taken to update matches: " << std::setprecision(1)
 			<< UNDERLINE(BOLD(update_time_ms << " ms")) << std::endl;
 
-		int qt_oc = std::min(MAX_OC_PRINT, m.matches());
+		int qt_oc = std::min(MAX_OC_PRINT, m());
 		if (qt_oc > 0) {
 			std::cout << std::endl;
 			std::cout << "Some " << qt_oc << " occurences:" << std::endl << std::endl;
+			int shift = std::min(occ_shift, m() - qt_oc);
 			for (int i = 0; i < qt_oc; i++) {
 
-				int j = std::min(m.match_idx(i), MAX_OC_RANGE);
+				int j = std::min(m[shift+i], MAX_OC_RANGE);
 				if (j < MAX_OC_RANGE) {
 					for (int k = 0; k < 3; k++) std::cout << " ";
 					for (int k = 0; k < MAX_OC_RANGE-j; k++) std::cout << " ";
 				} else std::cout << "...";
-				for (int k = 0; k < j; k++) std::cout << t[m.match_idx(i)-j+k];
+				for (int k = 0; k < j; k++) std::cout << t[m[shift+i]-j+k];
 
 				std::cout << INVERT(p);
 
-				j = std::min<int>(t.size() - m.match_idx(i) - p.size(), MAX_OC_RANGE);
-				for (int k = 0; k < j; k++) std:: cout << t[m.match_idx(i)+p.size()+k];
+				j = std::min<int>(t.size() - m[shift+i] - p.size(), MAX_OC_RANGE);
+				for (int k = 0; k < j; k++) std:: cout << t[m[shift+i]+p.size()+k];
 				if (j < MAX_OC_RANGE) {
 					for (int k = 0; k < 3; k++) std::cout << " ";
 					for (int k = 0; k < MAX_OC_RANGE-j; k++) std::cout << " ";
 				} else std::cout << "...";
 
-				std::cout << "\t(index " << format_int(m.match_idx(i)) << ")";
+				std::cout << "\t(index " << format_int(m[shift+i]) << ")";
 				std::cout << std::endl;
 			}
 		}
@@ -239,8 +240,8 @@ void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string&
 			} else if (c == 'C') { // right arrow
 				cursor_pos = std::min<int>(p.size(), cursor_pos + 1);
 			} else if (c == 'B') { // down arrow
-				int qt_oc = std::min(MAX_OC_PRINT, m.matches());
-				occ_shift = std::min(occ_shift + 1, m.matches() - qt_oc);
+				int qt_oc = std::min(MAX_OC_PRINT, m());
+				occ_shift = std::min(occ_shift + 1, m() - qt_oc);
 			} else if (c == 'A') { // up arrow
 				occ_shift = std::max(0, occ_shift - 1);
 			}

@@ -138,9 +138,11 @@ struct matching {
 		if (!part.one_node()) return 0;
 		return part.root->val.matches();
 	}
+	int operator()() { return matches(); }
 	int match_idx(int i) {
 		return sa.sa[part.root->val.L+i];
 	}
+	int operator[](int i) { return match_idx(i); }
 	//std::pair<int, int> range() { return {part.root->val.L, part.root->val.R}; }
 };
 
