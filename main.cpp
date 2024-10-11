@@ -197,26 +197,25 @@ void run_matching(dyn_pattern::matching& m, std::string& text_name, std::string&
 		if (qt_oc > 0) {
 			std::cout << std::endl;
 			std::cout << "Some " << qt_oc << " occurences:" << std::endl << std::endl;
-			int l = m.range().first + std::min(occ_shift, m.matches() - qt_oc);
 			for (int i = 0; i < qt_oc; i++) {
 
-				int j = std::min(m.sa.sa[l+i], MAX_OC_RANGE);
+				int j = std::min(m.match_idx(i), MAX_OC_RANGE);
 				if (j < MAX_OC_RANGE) {
 					for (int k = 0; k < 3; k++) std::cout << " ";
 					for (int k = 0; k < MAX_OC_RANGE-j; k++) std::cout << " ";
 				} else std::cout << "...";
-				for (int k = 0; k < j; k++) std::cout << t[m.sa.sa[l+i]-j+k];
+				for (int k = 0; k < j; k++) std::cout << t[m.match_idx(i)-j+k];
 
 				std::cout << INVERT(p);
 
-				j = std::min<int>(t.size() - m.sa.sa[l+i] - p.size(), MAX_OC_RANGE);
-				for (int k = 0; k < j; k++) std:: cout << t[m.sa.sa[l+i]+p.size()+k];
+				j = std::min<int>(t.size() - m.match_idx(i) - p.size(), MAX_OC_RANGE);
+				for (int k = 0; k < j; k++) std:: cout << t[m.match_idx(i)+p.size()+k];
 				if (j < MAX_OC_RANGE) {
 					for (int k = 0; k < 3; k++) std::cout << " ";
 					for (int k = 0; k < MAX_OC_RANGE-j; k++) std::cout << " ";
 				} else std::cout << "...";
 
-				std::cout << "\t(index " << format_int(m.sa.sa[l+i]) << ")";
+				std::cout << "\t(index " << format_int(m.match_idx(i)) << ")";
 				std::cout << std::endl;
 			}
 		}

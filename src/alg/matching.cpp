@@ -121,6 +121,15 @@ struct matching {
 		part.join_left(M);
 		part.join_left(L);
 	}
+	void insert(int i, const std::string& s) {
+		treap<occ> L;
+		part.split(i, L);
+		for (int i = 0; i < s.size(); i++) {
+			treap<occ> M(occ(&sa, s.rbegin()[i]));
+			part.join_left(M);
+		}
+		part.join_left(L);
+	}
 	void clear() {
 		treap<occ> tmp;
 		swap(tmp, part);
@@ -129,9 +138,10 @@ struct matching {
 		if (!part.one_node()) return 0;
 		return part.root->val.matches();
 	}
-	std::pair<int, int> range() {
-		return {part.root->val.L, part.root->val.R};
+	int match_idx(int i) {
+		return sa.sa[part.root->val.L+i];
 	}
+	//std::pair<int, int> range() { return {part.root->val.L, part.root->val.R}; }
 };
 
 } // namespace dyn_pattern
