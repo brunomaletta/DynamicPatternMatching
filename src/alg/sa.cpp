@@ -109,12 +109,14 @@ struct suffix_array {
 				and p[l] == s[sa[i]+l]) l++;
 		return l;
 	}
-	// returns a pair {first, lcp}
-	std::pair<int, int> first_idx(std::string& p) {
+	// returns a pair {first/last idx, lcp}
+	std::pair<int, int> get_idx(std::string& p, bool first) {
 		int l = extend_lcp(p, 0, 0), r = extend_lcp(p, 0, n-1);
 
 		// occurs at idx 0
-		if (l == (int) p.size()) return {0, p.size()};
+		if (first and l == (int) p.size()) return {0, p.size()};
+		// occurs at idx n-1
+		if (!first and r == (int) p.size()) return {n, p.size()};
 
 		int L = 0, R = n-1;
 		while (R - L > 1) {
@@ -123,8 +125,13 @@ struct suffix_array {
 			if (l >= r) m = L_lcp[M] < l ? L_lcp[M] : extend_lcp(p, l, M);
 			else m = R_lcp[M] < r ? R_lcp[M] : extend_lcp(p, r, M);
 
-			if (m == (int) p.size() or (sa[M]+m < n and p[m] < s[sa[M]+m]))
-				R = M, r = m;
+			bool eq = m == (int) p.size();
+			bool greater = !eq and sa[M]+m < n and p[m] < s[sa[M]+m];
+
+			bool right = first and (greater or eq);
+			right |= !first and greater;
+
+			if (right) R = M, r = m;
 			else L = M, l = m;
 		}
 		int pattern_lcp = std::max(l, r);
@@ -132,30 +139,12 @@ struct suffix_array {
 		if (pattern_lcp < (int) p.size()) return {n, pattern_lcp};
 		return {R, p.size()};
 	}
-	int last_idx(std::string& p) {
-		int l = extend_lcp(p, 0, 0), r = extend_lcp(p, 0, n-1);
-
-		if (r == (int) p.size()) return n;
-
-		int L = 0, R = n-1;
-		while (R - L > 1) {
-			int M = (L+R)/2;
-			int m;
-			if (l >= r) m = L_lcp[M] < l ? L_lcp[M] : extend_lcp(p, l, M);
-			else m = R_lcp[M] < r ? R_lcp[M] : extend_lcp(p, r, M);
-
-			if (m < (int) p.size() and sa[M]+m < n and p[m] < s[sa[M]+m])
-				R = M, r = m;
-			else L = M, l = m;
-		}
-		return R;
-	}
 	// O(log(n) + lcp) <= O(log(n) + |p|)
 	std::tuple<int, int, int> pattern_search(std::string& p) {
 		if (!p.size()) return {0, 0, 0};
-		auto [l, pattern_lcp] = first_idx(p);
+		auto [l, pattern_lcp] = get_idx(p, true);
 		if (l == n) return {0, 0, pattern_lcp};
-		return {l, last_idx(p), pattern_lcp};
+		return {l, get_idx(p, false).first, pattern_lcp};
 	}
 };
 
