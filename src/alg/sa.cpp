@@ -104,14 +104,14 @@ struct suffix_array {
 		return RMQ.query(l, r-1);
 	}
 
-	int extend_lcp(std::string& p, int l, int i) {
-		while (l < (int) p.size() and sa[i]+l < (int) s.size()
-				and p[l] == s[sa[i]+l]) l++;
-		return l;
-	}
 	// returns a pair {first/last idx, lcp}
 	std::pair<int, int> get_idx(std::string& p, bool first) {
-		int l = extend_lcp(p, 0, 0), r = extend_lcp(p, 0, n-1);
+		auto extend_lcp = [&](int l, int i) {
+			while (l < (int) p.size() and sa[i]+l < (int) s.size()
+					and p[l] == s[sa[i]+l]) l++;
+			return l;
+		};
+		int l = extend_lcp(0, 0), r = extend_lcp(0, n-1);
 
 		// occurs at idx 0
 		if (first and l == (int) p.size()) return {0, p.size()};
@@ -122,8 +122,8 @@ struct suffix_array {
 		while (R - L > 1) {
 			int M = (L+R)/2;
 			int m;
-			if (l >= r) m = L_lcp[M] < l ? L_lcp[M] : extend_lcp(p, l, M);
-			else m = R_lcp[M] < r ? R_lcp[M] : extend_lcp(p, r, M);
+			if (l >= r) m = L_lcp[M] < l ? L_lcp[M] : extend_lcp(l, M);
+			else m = R_lcp[M] < r ? R_lcp[M] : extend_lcp(r, M);
 
 			bool eq = m == (int) p.size();
 			bool greater = !eq and sa[M]+m < n and p[m] < s[sa[M]+m];
